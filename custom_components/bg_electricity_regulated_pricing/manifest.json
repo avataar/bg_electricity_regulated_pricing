@@ -1,0 +1,15 @@
+{
+  "domain": "bg_electricity_regulated_pricing",
+  "name": "Bulgarian Electricity Regulated Pricing",
+  "codeowners": ["@avataar"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/avataar/bg_electricity_regulated_pricing",
+  "homekit": {},
+  "integration_type": "hub",
+  "iot_class": "calculated",
+  "requirements": [],
+  "ssdp": [],
+  "version": "0.0.1",
+  "zeroconf": []
+}

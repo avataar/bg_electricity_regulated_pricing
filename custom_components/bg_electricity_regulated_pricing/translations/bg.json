@@ -1,0 +1,55 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "name": "Име",
+                    "provider": "Доставчик",
+                    "tariff_type": "Тарифност",
+                    "clock_offset": "Избързване/изоставане на часовника",
+                    "custom_day_price": "Потребителска цена дневна тарифа",
+                    "custom_night_price": "Потребителска цена нощна тарифа"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "provider": "Доставчик",
+                    "tariff_type": "Тарифност",
+                    "clock_offset": "Избързване/изоставане на часовника",
+                    "custom_day_price": "Потребителска цена дневна тарифа",
+                    "custom_night_price": "Потребителска цена нощна тарифа"
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "price": {
+                "name": "Цена"
+            },
+            "tariff": {
+                "name": "Тарифа"
+            }
+        }
+    },
+    "selector": {
+        "provider": {
+            "options": {
+                "electrohold": "Електрохолд",
+                "evn": "EVN",
+                "energo_pro": "ЕНЕРГО-ПРО",
+                "custom": "Потребителска цена"
+            }
+        },
+        "tariff_type": {
+            "options": {
+                "dual": "Двойна тарифа",
+                "single": "Единична тарифа"
+            }
+        }
+    }
+}

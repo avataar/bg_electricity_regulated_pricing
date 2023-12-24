@@ -1,0 +1,55 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "name": "Name",
+                    "provider": "Provider",
+                    "tariff_type": "Tariff Type",
+                    "clock_offset": "Clock Offset",
+                    "custom_day_price": "Custom Provider Day Price",
+                    "custom_night_price": "Custom Provider Night Price"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "provider": "Provider",
+                    "tariff_type": "Tariff Type",
+                    "clock_offset": "Clock Offset",
+                    "custom_day_price": "Custom Provider Day Price",
+                    "custom_night_price": "Custom Provider Night Price"
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "price": {
+                "name": "Price"
+            },
+            "tariff": {
+                "name": "Tariff"
+            }
+        }
+    },
+    "selector": {
+        "provider": {
+            "options": {
+                "electrohold": "Electrohold",
+                "evn": "EVN",
+                "energo_pro": "ENERGO-PRO",
+                "custom": "Custom"
+            }
+        },
+        "tariff_type": {
+            "options": {
+                "dual": "Dual tariff",
+                "single": "Single tariff"
+            }
+        }
+    }
+}
