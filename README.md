@@ -45,8 +45,8 @@ In the future, the integration may be added to HACS's default repositories.
 From the sidebar in Home Assistant, select [Settings > Devices & Services](https://my.home-assistant.io/redirect/integrations). Search for the integration by name (Bulgarian Electricity Regulated Pricing / Цени на електроенергията на регулирания пазар в България). To configure it for most users, it will suffice to enter a name, choose the provider, and leave the rest of the options with their default values. The name will be used to derive the sensor IDs.
 
 <p>
-  <img src="images/configure-bg.png" width="50%" height="auto" align="left">
-  <img src="images/configure-en.png" width="50%" height="auto" align="left">
+  <img src="images/configure-bg.png" width="45%" height="auto">
+  <img src="images/configure-en.png" width="45%" height="auto">
 </p>
 
 If you have multiple meters to track, you can configure as many instances of the integration as needed.
