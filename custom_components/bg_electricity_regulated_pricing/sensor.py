@@ -5,14 +5,13 @@ from homeassistant.components.sensor import SensorEntity, SensorEntityDescriptio
     SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import utcnow
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
-
 
 from .const import CONF_TARIFF_TYPE, CONF_PROVIDER, CONF_CUSTOM_DAY_PRICE, \
-    CONF_CUSTOM_NIGHT_PRICE, PROVIDER_PRICES, CONF_CLOCK_OFFSET, \
-    BGN_PER_KILOWATT_HOUR, VAT_RATE, DOMAIN
+    CONF_CUSTOM_NIGHT_PRICE, CONF_CLOCK_OFFSET, \
+    BGN_PER_KILOWATT_HOUR, VAT_RATE, DOMAIN, PROVIDER_PRICES_BY_DATE
 
 
 async def async_setup_entry(
@@ -28,16 +27,24 @@ async def async_setup_entry(
     clock_offset = config_entry.options[CONF_CLOCK_OFFSET]
     provider = config_entry.options[CONF_PROVIDER]
     if provider == "custom":
-        price_day = config_entry.options[CONF_CUSTOM_DAY_PRICE]
-        price_night = config_entry.options[CONF_CUSTOM_NIGHT_PRICE]
+        def price_provider_fun(x):
+            if x == "day":
+                return config_entry.options[CONF_CUSTOM_DAY_PRICE]
+            else:
+                return config_entry.options[CONF_CUSTOM_NIGHT_PRICE]
     else:
-        price_day = (PROVIDER_PRICES[provider]["day"]
-                     + PROVIDER_PRICES[provider]["fees"]) * (1 + VAT_RATE)
-        price_night = (PROVIDER_PRICES[provider]["night"]
-                       + PROVIDER_PRICES[provider]["fees"]) * (1 + VAT_RATE)
+        def price_provider_fun(x):
+            price = 0
+            fees = 0
+            for pp in PROVIDER_PRICES_BY_DATE:
+                price = pp["prices"][provider][x]
+                fees = pp["prices"][provider]["fees"]
+                if "until" in pp and now_utc().timestamp() < pp["until"]:
+                    break
+            return (price + fees) * (1 + VAT_RATE)
 
     price_provider = BgElectricityRegulatedPricingProvider(tariff_type, clock_offset,
-                                                           price_day, price_night)
+                                                           price_provider_fun)
 
     desc_price = SensorEntityDescription(
         key="price",
@@ -119,11 +126,10 @@ class BgElectricityRegulatedPricingTariffSensorEntity(
 class BgElectricityRegulatedPricingProvider:
     """Pricing provider aware of current tariff and price."""
 
-    def __init__(self, tariff_type, clock_offset, price_day, price_night):
+    def __init__(self, tariff_type, clock_offset, price_provider):
         self._tariff_type = tariff_type
         self._clock_offset = clock_offset
-        self._price_day = price_day
-        self._price_night = price_night
+        self._price_provider = price_provider
 
     def tariff(self):
         # Current hour and minutes in minutes since midnight, UTC+2.
@@ -140,7 +146,4 @@ class BgElectricityRegulatedPricingProvider:
         return "day"
 
     def price(self):
-        if self.tariff() == "day":
-            return self._price_day
-        else:
-            return self._price_night
+        return self._price_provider(self.tariff())

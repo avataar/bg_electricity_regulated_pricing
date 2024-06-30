@@ -9,7 +9,12 @@ Custom integration for [Home Assistant](https://www.home-assistant.io) that prov
 
 All three major regional providers, Electrohold, EVN, and ENERGO-PRO are supported.
 
-The prices are defined statically as they change only about once a year. The official source for the current prices is section 6 from [Resolution C-14/30.06.2023 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2023/res_c_14_23.pdf). All prices are the final amount that you'd pay, including VAT.
+The prices are defined statically as they change only about once a year. The official source for the current prices is section 6 from:
+
+- Since 1 July 2024: [Resolution C-17/30.06.2024 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf).
+- Since 1 July 2023: [Resolution C-14/30.06.2023 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2023/res_c_14_23.pdf).
+
+All prices are the final amount that you'd pay, including VAT.
 
 The night tariff starts at 22:00 UTC+2 and ends at 06:00 UTC+2. Note that even though Bulgaria switches to UTC+3 in the summer, meter clocks are not adjusted. In other words, the night tariff starts at 22:00/ends at 06:00 in the winter and at 23:00/07:00 in the summer.
 
