@@ -39,7 +39,7 @@ PROVIDER_PRICES_BEFORE_JULY_2024 = {
     }
 }
 
-PROVIDER_PRICES = {
+PROVIDER_PRICES_BEFORE_JAN_2025 = {
     # Section 6.1, https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf
     "electrohold": {
         "day": .16210,
@@ -60,10 +60,35 @@ PROVIDER_PRICES = {
     }
 }
 
+PROVIDER_PRICES = {
+    # https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf and https://electrohold.bg/bg/sales/domakinstva/snabdyavane-po-regulirani-ceni/
+    "electrohold": {
+        "day": .17564,
+        "night": .07698,
+        "fees": .01366 + .00085 + .04203 + .00770
+    },
+    # https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf and https://evn.bg/Home/Electricity.aspx
+    "evn": {
+        "day": .17257,
+        "night": .07404,
+        "fees": .00085 + .01366 + .04106 + .00819
+    },
+    # https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf and https://energo-pro-sales.bg/bg/za-klienta/klienti-na-reguliran-pazar/ceni-na-elektroenergijata/ceni-na-elektroenergijata-za-bitovi-klienti-ot-01-01-2025-g
+    "energo_pro": {
+        "day": .17706,
+        "night": .07192,
+        "fees": .00085 + .01366 + .04135 + .00977
+    }
+}
+
 PROVIDER_PRICES_BY_DATE = [
     {
         "until": 1719777600,  # midnight 2024-07-01 UTC+2
         "prices": PROVIDER_PRICES_BEFORE_JULY_2024
+    },
+    {
+        "until": 1735689600,  # midnight 2025-01-01 UTC+2
+        "prices": PROVIDER_PRICES_BEFORE_JAN_2025
     },
     {
         "prices": PROVIDER_PRICES
