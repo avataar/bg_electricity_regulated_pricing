@@ -1,8 +1,6 @@
-"""Sensor platform for bg_electricity_regulated_pricing integration."""
 from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, \
-    SensorStateClass
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -26,6 +24,7 @@ async def async_setup_entry(
     tariff_type = config_entry.options[CONF_TARIFF_TYPE]
     clock_offset = config_entry.options[CONF_CLOCK_OFFSET]
     provider = config_entry.options[CONF_PROVIDER]
+    
     if provider == "custom":
         def price_provider_fun(x):
             if x == "day":
@@ -43,8 +42,9 @@ async def async_setup_entry(
                     break
             return (price + fees) * (1 + VAT_RATE)
 
-    price_provider = BgElectricityRegulatedPricingProvider(tariff_type, clock_offset,
-                                                           price_provider_fun)
+    price_provider = BgElectricityRegulatedPricingProvider(
+        tariff_type, clock_offset, provider, price_provider_fun
+    )
 
     desc_price = SensorEntityDescription(
         key="price",
@@ -64,10 +64,8 @@ async def async_setup_entry(
     )
 
     async_add_entities([
-        BgElectricityRegulatedPricingPriceSensorEntity(price_provider, unique_id,
-                                                       name, desc_price),
-        BgElectricityRegulatedPricingTariffSensorEntity(price_provider, unique_id,
-                                                        name, desc_tariff)
+        BgElectricityRegulatedPricingPriceSensorEntity(price_provider, unique_id, name, desc_price),
+        BgElectricityRegulatedPricingTariffSensorEntity(price_provider, unique_id, name, desc_tariff)
     ])
 
 
@@ -93,9 +91,7 @@ class BgElectricityRegulatedPricingSensorEntity(SensorEntity):
         )
 
 
-class BgElectricityRegulatedPricingPriceSensorEntity(
-    BgElectricityRegulatedPricingSensorEntity
-):
+class BgElectricityRegulatedPricingPriceSensorEntity(BgElectricityRegulatedPricingSensorEntity):
     """BgElectricityRegulatedPricing Sensor for price."""
 
     def __init__(self, price_provider: BgElectricityRegulatedPricingProvider,
@@ -108,9 +104,7 @@ class BgElectricityRegulatedPricingPriceSensorEntity(
         self._attr_native_value = self._price_provider.price()
 
 
-class BgElectricityRegulatedPricingTariffSensorEntity(
-    BgElectricityRegulatedPricingSensorEntity
-):
+class BgElectricityRegulatedPricingTariffSensorEntity(BgElectricityRegulatedPricingSensorEntity):
     """BgElectricityRegulatedPricing Sensor for tariff."""
 
     def __init__(self, price_provider: BgElectricityRegulatedPricingProvider,
@@ -126,24 +120,56 @@ class BgElectricityRegulatedPricingTariffSensorEntity(
 class BgElectricityRegulatedPricingProvider:
     """Pricing provider aware of current tariff and price."""
 
-    def __init__(self, tariff_type, clock_offset, price_provider):
+    def __init__(self, tariff_type, clock_offset, provider, price_provider):
         self._tariff_type = tariff_type
         self._clock_offset = clock_offset
+        self._provider = provider
         self._price_provider = price_provider
 
     def tariff(self):
-        # Current hour and minutes in minutes since midnight, UTC+2.
-        # Night tariff starts at 22:00 and ends ot 06:00 UTC+2 (no summer time)
+        """Determine the tariff based on provider and month."""
+        if self._provider == "energo_pro":
+            # Handle energo_pro dual tariff logic
+            return self._energo_pro_tariff()
+        else:
+            # Current hour and minutes in minutes since midnight, UTC+2.
+            # Night tariff starts at 22:00 and ends at 06:00 UTC+2 (no summer time)
+            utc = now_utc()
+            hour_minutes = (
+                (utc.hour + 2) % 24 * 60
+                + utc.minute
+                + self._clock_offset
+            ) % 1440
+            if self._tariff_type == "dual":
+                if hour_minutes >= 22 * 60 or hour_minutes < 6 * 60:
+                    return "night"
+            return "day"
+
+    def price(self):
+        return self._price_provider(self.tariff())
+
+    def _energo_pro_tariff(self):
+        """Handle the tariff calculation for energo_pro."""
         utc = now_utc()
         hour_minutes = (
-                               (utc.hour + 2) % 24 * 60
-                               + utc.minute
-                               + self._clock_offset
-                       ) % 1440
+            (utc.hour + 2) % 24 * 60
+            + utc.minute
+            + self._clock_offset
+        ) % 1440
+        month = utc.month
+        # Define the time windows based on month
         if self._tariff_type == "dual":
-            if hour_minutes >= 22 * 60 or hour_minutes < 6 * 60:
-                return "night"
+            if month in [1, 2, 3]:  # Jan, Feb, Mar
+                if hour_minutes >= 22 * 60 or hour_minutes < 6 * 60:
+                    return "night"
+            elif month in [4, 5, 6, 7, 8, 9, 10]:  # Apr - Oct
+                if hour_minutes >= 23 * 60 or hour_minutes < 7 * 60:
+                    return "night"
+            elif month in [11, 12]:  # Nov, Dec
+                if hour_minutes >= 22 * 60 or hour_minutes < 6 * 60:
+                    return "night"
         return "day"
 
     def price(self):
+        """Return the calculated price based on the current tariff."""
         return self._price_provider(self.tariff())
