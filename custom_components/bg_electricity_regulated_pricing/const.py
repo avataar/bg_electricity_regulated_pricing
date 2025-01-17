@@ -23,40 +23,61 @@ PROVIDER_PRICES_BEFORE_JULY_2024 = {
     "electrohold": {
         "day": .14875,
         "night": .05997,
-        "fees": .01623 + .00754 + .04232
+        "fees": .00102 + .01521 + .00754 + .04232
     },
     # Section 6.2, https://www.dker.bg/uploads/reshenia/2023/res_c_14_23.pdf
     "evn": {
         "day": .14667,
         "night": .05531,
-        "fees": .01623 + .00803 + .04366
+        "fees": .00102 + .01521 + .00803 + .04366
     },
     # Section 6.3, https://www.dker.bg/uploads/reshenia/2023/res_c_14_23.pdf
     "energo_pro": {
         "day": .15076,
         "night": .05279,
-        "fees": .01623 + .00959 + .04825
+        "fees": .00102 + .01521 + .00959 + .04825
     }
 }
 
-PROVIDER_PRICES = {
+PROVIDER_PRICES_BEFORE_JANUARY_2025 = {
     # Section 6.1, https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf
     "electrohold": {
         "day": .16210,
         "night": .07104,
-        "fees": .01354 + .00770 + .03803
+        "fees": .00085 + .0127 + .00770 + .03803
     },
     # Section 6.2, https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf
     "evn": {
         "day": .15926,
         "night": .06833,
-        "fees": .01354 + .00819 + .03704
+        "fees": .00085 + .0127 + .00819 + .03704
     },
     # Section 6.3, https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf
     "energo_pro": {
         "day": .16341,
         "night": .06636,
-        "fees": .01354 + .00977 + .03689
+        "fees": .00085 + .0127 + .00977 + .03689
+    }
+}
+
+PROVIDER_PRICES = {
+    # Section II.1, II.3, II.7, https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf
+    "electrohold": {
+        "day": .17564,
+        "night": .07698,
+        "fees": .00085 + .01366 + .00770 + .04203
+    },
+    # Section II.1, II.4, II.8, https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf
+    "evn": {
+        "day": .17257,
+        "night": .07404,
+        "fees": .00085 + .01366 + .00819 + .04106
+    },
+    # Section II.1, II.5, II.9, https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf
+    "energo_pro": {
+        "day": .17706,
+        "night": .07192,
+        "fees": .00085 + .01366 + .00977 + .04135
     }
 }
 
@@ -64,6 +85,10 @@ PROVIDER_PRICES_BY_DATE = [
     {
         "until": 1719777600,  # midnight 2024-07-01 UTC+2
         "prices": PROVIDER_PRICES_BEFORE_JULY_2024
+    },
+    {
+        "until": 1735682400,  # midnight 2025-01-01 UTC+2
+        "prices": PROVIDER_PRICES_BEFORE_JANUARY_2025
     },
     {
         "prices": PROVIDER_PRICES
