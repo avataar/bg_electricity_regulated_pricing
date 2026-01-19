@@ -11,7 +11,8 @@ from homeassistant.util import utcnow
 
 from .const import CONF_TARIFF_TYPE, CONF_PROVIDER, CONF_CUSTOM_DAY_PRICE, \
     CONF_CUSTOM_NIGHT_PRICE, CONF_CLOCK_OFFSET, \
-    BGN_PER_KILOWATT_HOUR, VAT_RATE, DOMAIN, PROVIDER_PRICES_BY_DATE
+    BGN_PER_KILOWATT_HOUR, VAT_RATE, DOMAIN, PROVIDER_PRICES_BY_DATE, \
+    get_currency_unit
 
 
 async def async_setup_entry(
@@ -46,11 +47,14 @@ async def async_setup_entry(
     price_provider = BgElectricityRegulatedPricingProvider(tariff_type, clock_offset,
                                                            price_provider_fun)
 
+    # Get current currency unit
+    current_currency = get_currency_unit(now_utc().timestamp())
+
     desc_price = SensorEntityDescription(
         key="price",
         translation_key="price",
         icon="mdi:currency-eur",
-        native_unit_of_measurement=BGN_PER_KILOWATT_HOUR,
+        native_unit_of_measurement=current_currency,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=6,
         has_entity_name=True,

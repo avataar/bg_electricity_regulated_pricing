@@ -49,7 +49,7 @@ EXPECTED_PRICES_BEFORE_JANUARY_2025 = {
     }
 }
 
-EXPECTED_PRICES = {
+EXPECTED_PRICES_DECEMBER_2025 = {
     "electrohold": {
         "day": 0.287856,
         "night": 0.169464
@@ -68,6 +68,25 @@ EXPECTED_PRICES = {
     }
 }
 
+EXPECTED_PRICES = {
+    "electrohold": {
+        "day": 0.12478,
+        "night": 0.07381
+    },
+    "evn": {
+        "day": 0.14986,
+        "night": 0.08870
+    },
+    "energo_pro": {
+        "day": 0.08955,
+        "night": 0.03858
+    },
+    "custom": {
+        "day": 0.25,
+        "night": 0.15
+    }
+}
+
 EXPECTED_PRICES_BY_DATE = [
     {
         "until": 1719777600,  # midnight 2024-07-01 UTC+2
@@ -76,6 +95,10 @@ EXPECTED_PRICES_BY_DATE = [
     {
         "until": 1735682400,  # midnight 2025-01-01 UTC+2
         "prices": EXPECTED_PRICES_BEFORE_JANUARY_2025
+    },
+    {
+        "until": 1767218400,  # midnight 2026-01-01 UTC+2
+        "prices": EXPECTED_PRICES_DECEMBER_2025
     },
     {
         "prices": EXPECTED_PRICES
@@ -98,93 +121,100 @@ async def test_prices_before_january_2025(hass: HomeAssistant, provider: str) ->
 
 
 @pytest.mark.parametrize("provider", ("electrohold", "evn", "energo_pro", "custom"))
+async def test_prices_before_january_2026(hass: HomeAssistant, provider: str) -> None:
+    """Test setting up and removing a config entry before January 2026."""
+    await do_setup_test_with_mock(hass, provider, mock_time_before_january_2026,
+                                  EXPECTED_PRICES_DECEMBER_2025)
+
+
+@pytest.mark.parametrize("provider", ("electrohold", "evn", "energo_pro", "custom"))
 async def test_prices_current(hass: HomeAssistant, provider: str) -> None:
     """Test setting up and removing a config entry with current prices."""
     await do_setup_test_with_mock(hass, provider, mock_time,
-                                  EXPECTED_PRICES)
+                                  EXPECTED_PRICES, currency_unit="€/kWh")
 
 
 async def do_setup_test_with_mock(hass: HomeAssistant,
-                                  provider: str, mock, expected_prices) -> None:
+                                  provider: str, mock, expected_prices, currency_unit="BGN/kWh") -> None:
     with mock(21, 59):
         await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
 
     with mock(22, 0):
         await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
 
     with mock(5, 59):
         await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
 
     with mock(6, 0):
         await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
+                            expected_prices, currency_unit=currency_unit)
 
     # Meter clock is 30 minutes ahead
     with mock(21, 30):
         await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, 30)
+                            expected_prices, 30, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 30)
+                            expected_prices, 30, currency_unit=currency_unit)
 
     with mock(5, 30):
         await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, 30)
+                            expected_prices, 30, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 30)
+                            expected_prices, 30, currency_unit=currency_unit)
 
     # Meter clock is 30 minutes behind
     with mock(22, 29):
         await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, -30)
+                            expected_prices, -30, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -30)
+                            expected_prices, -30, currency_unit=currency_unit)
 
     with mock(6, 29):
         await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, -30)
+                            expected_prices, -30, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -30)
+                            expected_prices, -30, currency_unit=currency_unit)
 
     # Meter clock is 10 hours ahead
     with mock(12, 0):
         await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, 600)
+                            expected_prices, 600, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 600)
+                            expected_prices, 600, currency_unit=currency_unit)
 
     with mock(20, 0):
         await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, 600)
+                            expected_prices, 600, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 600)
+                            expected_prices, 600, currency_unit=currency_unit)
 
     # Meter clock is 10 hours behind
     with mock(8, 0):
         await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, -600)
+                            expected_prices, -600, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -600)
+                            expected_prices, -600, currency_unit=currency_unit)
 
     with mock(16, 0):
         await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, -600)
+                            expected_prices, -600, currency_unit=currency_unit)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -600)
+                            expected_prices, -600, currency_unit=currency_unit)
 
 
 async def do_setup_test(hass: HomeAssistant, provider: str, tariff_type: str,
-                        expected_tariff: str, expected_prices, clock_offset=0):
+                        expected_tariff: str, expected_prices, clock_offset=0, currency_unit="BGN/kWh"):
     registry = er.async_get(hass)
     custom_day_price = 0.25
     custom_night_price = 0.15
@@ -220,7 +250,7 @@ async def do_setup_test(hass: HomeAssistant, provider: str, tariff_type: str,
         'friendly_name': 'My Provider Price',
         'icon': 'mdi:currency-eur',
         'state_class': SensorStateClass.MEASUREMENT,
-        'unit_of_measurement': 'BGN/kWh'
+        'unit_of_measurement': currency_unit
     }
 
     # Check the price entity is registered in the entity registry
@@ -261,6 +291,15 @@ def mock_time_before_january_2025(hour: int, minute: int):
     return mock.patch(
         "custom_components.bg_electricity_regulated_pricing.sensor.now_utc",
         return_value=datetime(2024, 12, 30, hour, minute, 0, 0, pytz.UTC))
+
+
+def mock_time_before_january_2026(hour: int, minute: int):
+    hour -= 2
+    if hour < 0:
+        hour += 24
+    return mock.patch(
+        "custom_components.bg_electricity_regulated_pricing.sensor.now_utc",
+        return_value=datetime(2025, 12, 30, hour, minute, 0, 0, pytz.UTC))
 
 
 def mock_time(hour: int, minute: int):

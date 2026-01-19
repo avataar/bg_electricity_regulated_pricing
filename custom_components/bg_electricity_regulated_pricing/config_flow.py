@@ -12,10 +12,14 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowFormStep,
     SchemaFlowMenuStep,
 )
+from homeassistant.util import utcnow
 
 from .const import DOMAIN, PROVIDERS, CONF_PROVIDER, CONF_TARIFF_TYPE, TARIFF_TYPES, \
     CONF_CLOCK_OFFSET, CONF_CUSTOM_DAY_PRICE, CONF_CUSTOM_NIGHT_PRICE, \
-    BGN_PER_KILOWATT_HOUR
+    get_currency_unit
+
+# Get current currency unit dynamically
+current_currency_unit = get_currency_unit(utcnow().timestamp())
 
 OPTIONS_SCHEMA = vol.Schema(
     {
@@ -40,13 +44,13 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(CONF_CUSTOM_DAY_PRICE, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 step="any", mode=selector.NumberSelectorMode.BOX,
-                unit_of_measurement=BGN_PER_KILOWATT_HOUR
+                unit_of_measurement=current_currency_unit
             ),
         ),
         vol.Required(CONF_CUSTOM_NIGHT_PRICE, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 step="any", mode=selector.NumberSelectorMode.BOX,
-                unit_of_measurement=BGN_PER_KILOWATT_HOUR
+                unit_of_measurement=current_currency_unit
             ),
         )
     }

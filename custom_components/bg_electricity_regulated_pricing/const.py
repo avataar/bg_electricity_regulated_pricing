@@ -3,6 +3,15 @@ from homeassistant.const import UnitOfEnergy
 
 DOMAIN = "bg_electricity_regulated_pricing"
 BGN_PER_KILOWATT_HOUR = f"BGN/{UnitOfEnergy.KILO_WATT_HOUR}"
+EUR_PER_KILOWATT_HOUR = f"€/{UnitOfEnergy.KILO_WATT_HOUR}"
+EURO_ADOPTION_TIMESTAMP = 1767218400  # midnight 2026-01-01 UTC+2
+
+
+def get_currency_unit(timestamp: float) -> str:
+    """Get currency unit based on timestamp."""
+    if timestamp >= EURO_ADOPTION_TIMESTAMP:
+        return EUR_PER_KILOWATT_HOUR
+    return BGN_PER_KILOWATT_HOUR
 
 CONF_PROVIDER = "provider"
 PROVIDERS = ["electrohold", "evn", "energo_pro", "custom"]
@@ -60,7 +69,7 @@ PROVIDER_PRICES_BEFORE_JANUARY_2025 = {
     }
 }
 
-PROVIDER_PRICES = {
+PROVIDER_PRICES_DECEMBER_2025 = {
     # Section II.1, II.3, II.7, https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf
     "electrohold": {
         "day": .17564,
@@ -81,6 +90,30 @@ PROVIDER_PRICES = {
     }
 }
 
+PROVIDER_PRICES = {
+    # Section II.1, II.3, II.7, https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf
+    # Prices in EUR (converted from BGN)
+    "electrohold": {
+        "day": 0.08955,
+        "night": 0.03858,
+        "fees": 0.0076 + 0.00018 + 0.02374 + 0.00371
+    },
+    # Section II.1, II.4, II.8, https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf
+    # Prices in EUR (converted from BGN)
+    "evn": {
+        "day": 0.08955,
+        "night": 0.03858,
+        "fees": 0.0076 + 0.00018 + 0.02337 + 0.00419
+    },
+    # Section II.1, II.5, II.9, https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf
+    # Prices in EUR (converted from BGN)
+    "energo_pro": {
+        "day": 0.08955,
+        "night": 0.03858,
+        "fees": 0.00018 + 0.00760 + 0.00500 + 0.02383
+    }
+}
+
 PROVIDER_PRICES_BY_DATE = [
     {
         "until": 1719777600,  # midnight 2024-07-01 UTC+2
@@ -89,6 +122,10 @@ PROVIDER_PRICES_BY_DATE = [
     {
         "until": 1735682400,  # midnight 2025-01-01 UTC+2
         "prices": PROVIDER_PRICES_BEFORE_JANUARY_2025
+    },
+    {
+        "until": 1767218400,  # midnight 2026-01-01 UTC+2
+        "prices": PROVIDER_PRICES_DECEMBER_2025
     },
     {
         "prices": PROVIDER_PRICES

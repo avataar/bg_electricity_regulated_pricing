@@ -145,11 +145,12 @@ async def test_options(hass: HomeAssistant) -> None:
     assert len(hass.states.async_all()) == 2
 
     state = hass.states.get("sensor.my_provider_price")
+    # Should show €/kWh since we're in 2026
     assert state.attributes == {
         'friendly_name': 'My Provider Price',
         'icon': 'mdi:currency-eur',
         'state_class': SensorStateClass.MEASUREMENT,
-        'unit_of_measurement': 'BGN/kWh'
+        'unit_of_measurement': '€/kWh'
     }
 
     state = hass.states.get("sensor.my_provider_tariff")
