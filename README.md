@@ -9,12 +9,34 @@ Custom integration for [Home Assistant](https://www.home-assistant.io) that prov
 
 All three major regional providers, Electrohold, EVN, and ENERGO-PRO are supported.
 
-The prices are defined statically as they change only about once a year. The official source for the current prices is section 6 from:
+The prices are defined statically as they change only about once a year. The official source for the current prices is:
 
-- Since 1 July 2024: [Resolution C-17/30.06.2024 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf).
-- Since 1 July 2023: [Resolution C-14/30.06.2023 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2023/res_c_14_23.pdf).
+- Since 1 January 2026: Prices in **EUR** (€) after Bulgaria's Euro adoption
+- Since 1 January 2025: [Resolution C-03/27.12.2024 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2025/res_c-03_25.pdf) - Prices in BGN
+- Since 1 July 2024: [Resolution C-17/30.06.2024 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf) - Prices in BGN
+- Since 1 July 2023: [Resolution C-14/30.06.2023 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2023/res_c_14_23.pdf) - Prices in BGN
 
 All prices are the final amount that you'd pay, including VAT.
+
+### Current Prices (since 1 January 2026) in EUR
+
+After Bulgaria's adoption of the Euro, all prices are displayed in **€/kWh**:
+
+| Provider | Day Tariff | Night Tariff |
+|----------|------------|-------------|
+| **Electrohold** | €0.1478 | €0.0738 |
+| **EVN** | €0.1499 | €0.0887 |
+| **Energo-Pro** | €0.0896 | €0.0386 |
+
+### Prices in December 2025 (BGN)
+
+For historical reference, the last BGN prices (1 January - 31 December 2025):
+
+| Provider | Day Tariff | Night Tariff |
+|----------|------------|-------------|
+| **Electrohold** | 0.2876 лв/kWh | 0.1695 лв/kWh |
+| **EVN** | 0.2836 лв/kWh | 0.1654 лв/kWh |
+| **Energo-Pro** | 0.2912 лв/kWh | 0.1651 лв/kWh |
 
 The night tariff starts at 22:00 UTC+2 and ends at 06:00 UTC+2. Note that even though Bulgaria switches to UTC+3 in the summer, meter clocks are not adjusted. In other words, the night tariff starts at 22:00/ends at 06:00 in the winter and at 23:00/07:00 in the summer.
 
@@ -25,9 +47,9 @@ The night tariff starts at 22:00 UTC+2 and ends at 06:00 UTC+2. Note that even t
 
 The integration provides two sensors that adjust according to the time of day and the configuration:
 
-### Current price in BGN per kWh
+### Current price in BGN/EUR per kWh
 
-This sensor provides the current price according to the configured provider and current tariff (day or night). It can be used to track expenses together with an energy meter in Home Assistant. The ID of the sensor will be `sensor.xxx_price` where `xxx` is derived from the name you give to the integration instance when configuring it. 
+This sensor provides the current price according to the configured provider and current tariff (day or night). The currency automatically switches from BGN to EUR (€) on 1 January 2026. It can be used to track expenses together with an energy meter in Home Assistant. The ID of the sensor will be `sensor.xxx_price` where `xxx` is derived from the name you give to the integration instance when configuring it. 
              
 <img src="https://github.com/avataar/bg_electricity_regulated_pricing/raw/main/images/price.png" width="50%" height="auto">
 
