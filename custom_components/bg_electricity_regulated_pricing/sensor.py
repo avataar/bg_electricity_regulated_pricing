@@ -1,17 +1,20 @@
 """Sensor platform for bg_electricity_regulated_pricing integration."""
 from __future__ import annotations
 
+from zoneinfo import ZoneInfo
+
+import pytz
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, \
     SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.util import utcnow
+from homeassistant.util.dt import now
 
 from .const import CONF_TARIFF_TYPE, CONF_PROVIDER, CONF_CUSTOM_DAY_PRICE, \
     CONF_CUSTOM_NIGHT_PRICE, CONF_CLOCK_OFFSET, \
-    BGN_PER_KILOWATT_HOUR, VAT_RATE, DOMAIN, PROVIDER_PRICES_BY_DATE
+    EUR_PER_KILOWATT_HOUR, VAT_RATE, DOMAIN, PROVIDER_PRICES, CONF_CLASSIC_DAY_NIGHT
 
 
 async def async_setup_entry(
@@ -25,6 +28,7 @@ async def async_setup_entry(
 
     tariff_type = config_entry.options[CONF_TARIFF_TYPE]
     clock_offset = config_entry.options[CONF_CLOCK_OFFSET]
+    use_legacy_day_night_algorithm = config_entry.options.get(CONF_CLASSIC_DAY_NIGHT, False)
     provider = config_entry.options[CONF_PROVIDER]
     if provider == "custom":
         def price_provider_fun(x):
@@ -34,23 +38,18 @@ async def async_setup_entry(
                 return config_entry.options[CONF_CUSTOM_NIGHT_PRICE]
     else:
         def price_provider_fun(x):
-            price = 0
-            fees = 0
-            for pp in PROVIDER_PRICES_BY_DATE:
-                price = pp["prices"][provider][x]
-                fees = pp["prices"][provider]["fees"]
-                if "until" in pp and now_utc().timestamp() < pp["until"]:
-                    break
+            price = PROVIDER_PRICES[provider][x]
+            fees = PROVIDER_PRICES[provider]["fees"]
             return (price + fees) * (1 + VAT_RATE)
 
-    price_provider = BgElectricityRegulatedPricingProvider(tariff_type, clock_offset,
+    price_provider = BgElectricityRegulatedPricingProvider(tariff_type, clock_offset, use_legacy_day_night_algorithm,
                                                            price_provider_fun)
 
     desc_price = SensorEntityDescription(
         key="price",
         translation_key="price",
         icon="mdi:currency-eur",
-        native_unit_of_measurement=BGN_PER_KILOWATT_HOUR,
+        native_unit_of_measurement=EUR_PER_KILOWATT_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=6,
         has_entity_name=True,
@@ -71,8 +70,8 @@ async def async_setup_entry(
     ])
 
 
-def now_utc():
-    return utcnow()
+def now_bg():
+    return now(ZoneInfo("Europe/Sofia"))
 
 
 class BgElectricityRegulatedPricingSensorEntity(SensorEntity):
@@ -126,15 +125,37 @@ class BgElectricityRegulatedPricingTariffSensorEntity(
 class BgElectricityRegulatedPricingProvider:
     """Pricing provider aware of current tariff and price."""
 
-    def __init__(self, tariff_type, clock_offset, price_provider):
+    def __init__(self, tariff_type, clock_offset, use_legacy_day_night_algorithm, price_provider):
         self._tariff_type = tariff_type
         self._clock_offset = clock_offset
+        self._use_legacy_day_night_algorithm = use_legacy_day_night_algorithm
         self._price_provider = price_provider
 
     def tariff(self):
+        return self.tariff_legacy() if self._use_legacy_day_night_algorithm else self.tariff_default()
+
+    def tariff_default(self):
+        bg_time = now_bg()
+
+        # Start and end hour of night tariff.
+        # April - October inclusive, night tariff is 23:00 to 07:00 local time.
+        # All other months night tariff is 22:00 to 06:00 local time.
+        (start, end) = (23, 7) if bg_time.month >= 4 and bg_time.month <= 10 else (22, 6)
+
+        hour_minutes = (
+                               bg_time.hour % 24 * 60
+                               + bg_time.minute
+                               + self._clock_offset
+                       ) % 1440
+        if self._tariff_type == "dual":
+            if hour_minutes >= start * 60 or hour_minutes < end * 60:
+                return "night"
+        return "day"
+
+    def tariff_legacy(self):
         # Current hour and minutes in minutes since midnight, UTC+2.
-        # Night tariff starts at 22:00 and ends ot 06:00 UTC+2 (no summer time)
-        utc = now_utc()
+        # Night tariff starts at 22:00 and ends at 06:00 UTC+2 (no summer time)
+        utc = now_bg().astimezone(pytz.utc)
         hour_minutes = (
                                (utc.hour + 2) % 24 * 60
                                + utc.minute

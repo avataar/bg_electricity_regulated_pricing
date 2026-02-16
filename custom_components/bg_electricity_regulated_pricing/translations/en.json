@@ -8,7 +8,8 @@
                     "tariff_type": "Tariff Type",
                     "clock_offset": "Clock Offset",
                     "custom_day_price": "Custom Provider Day Price",
-                    "custom_night_price": "Custom Provider Night Price"
+                    "custom_night_price": "Custom Provider Night Price",
+                    "use_legacy_day_night_algorithm": "Use Legacy Night Tariff Algorithm"
                 }
             }
         }
@@ -21,7 +22,8 @@
                     "tariff_type": "Tariff Type",
                     "clock_offset": "Clock Offset",
                     "custom_day_price": "Custom Provider Day Price",
-                    "custom_night_price": "Custom Provider Night Price"
+                    "custom_night_price": "Custom Provider Night Price",
+                    "use_legacy_day_night_algorithm": "Use Legacy Night Tariff Algorithm"
                 }
             }
         }

@@ -10,10 +10,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.bg_electricity_regulated_pricing.const import DOMAIN
 
 
-async def test_config_flow(
+async def test_config_flow_required(
         hass: HomeAssistant, mock_setup_entry: AsyncMock
 ) -> None:
-    """Test the config flow."""
+    """Test the config flow with only the required options set."""
     provider = "electrohold"
     tariff_type = "dual"
     clock_offset = 0
@@ -48,7 +48,8 @@ async def test_config_flow(
         "tariff_type": tariff_type,
         "clock_offset": clock_offset,
         "custom_day_price": custom_day_price,
-        "custom_night_price": custom_night_price
+        "custom_night_price": custom_night_price,
+        "use_legacy_day_night_algorithm": False
     }
     assert len(mock_setup_entry.mock_calls) == 1
 
@@ -60,7 +61,66 @@ async def test_config_flow(
         "tariff_type": tariff_type,
         "clock_offset": clock_offset,
         "custom_day_price": custom_day_price,
-        "custom_night_price": custom_night_price
+        "custom_night_price": custom_night_price,
+        "use_legacy_day_night_algorithm": False
+    }
+    assert config_entry.title == "My Provider"
+
+
+async def test_config_flow_all(
+        hass: HomeAssistant, mock_setup_entry: AsyncMock
+) -> None:
+    """Test the config flow with all options set."""
+    provider = "custom"
+    tariff_type = "dual"
+    clock_offset = 30
+    custom_day_price = 0.25
+    custom_night_price = 0.15
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] is None
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "name": "My Provider",
+            "provider": provider,
+            "tariff_type": tariff_type,
+            "clock_offset": clock_offset,
+            "custom_day_price": custom_day_price,
+            "custom_night_price": custom_night_price,
+            "use_legacy_day_night_algorithm": True
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["title"] == "My Provider"
+    assert result["data"] == {}
+    assert result["options"] == {
+        "name": "My Provider",
+        "provider": provider,
+        "tariff_type": tariff_type,
+        "clock_offset": clock_offset,
+        "custom_day_price": custom_day_price,
+        "custom_night_price": custom_night_price,
+        "use_legacy_day_night_algorithm": True
+    }
+    assert len(mock_setup_entry.mock_calls) == 1
+
+    config_entry = hass.config_entries.async_entries(DOMAIN)[0]
+    assert config_entry.data == {}
+    assert config_entry.options == {
+        "name": "My Provider",
+        "provider": provider,
+        "tariff_type": tariff_type,
+        "clock_offset": clock_offset,
+        "custom_day_price": custom_day_price,
+        "custom_night_price": custom_night_price,
+        "use_legacy_day_night_algorithm": True
     }
     assert config_entry.title == "My Provider"
 
@@ -115,7 +175,8 @@ async def test_options(hass: HomeAssistant) -> None:
             "tariff_type": tariff_type,
             "clock_offset": clock_offset,
             "custom_day_price": custom_day_price,
-            "custom_night_price": custom_night_price
+            "custom_night_price": custom_night_price,
+            "use_legacy_day_night_algorithm": True
         },
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
@@ -125,7 +186,8 @@ async def test_options(hass: HomeAssistant) -> None:
         "tariff_type": tariff_type,
         "clock_offset": clock_offset,
         "custom_day_price": custom_day_price,
-        "custom_night_price": custom_night_price
+        "custom_night_price": custom_night_price,
+        "use_legacy_day_night_algorithm": True
     }
     assert config_entry.data == {}
     assert config_entry.options == {
@@ -134,7 +196,8 @@ async def test_options(hass: HomeAssistant) -> None:
         "tariff_type": tariff_type,
         "clock_offset": clock_offset,
         "custom_day_price": custom_day_price,
-        "custom_night_price": custom_night_price
+        "custom_night_price": custom_night_price,
+        "use_legacy_day_night_algorithm": True
     }
     assert config_entry.title == "My Provider"
 
@@ -149,7 +212,7 @@ async def test_options(hass: HomeAssistant) -> None:
         'friendly_name': 'My Provider Price',
         'icon': 'mdi:currency-eur',
         'state_class': SensorStateClass.MEASUREMENT,
-        'unit_of_measurement': 'BGN/kWh'
+        'unit_of_measurement': 'EUR/kWh'
     }
 
     state = hass.states.get("sensor.my_provider_tariff")

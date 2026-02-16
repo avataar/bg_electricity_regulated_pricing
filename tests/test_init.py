@@ -3,7 +3,6 @@ from datetime import datetime
 from unittest import mock
 
 import pytest
-import pytz
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
@@ -11,56 +10,19 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.bg_electricity_regulated_pricing.const import DOMAIN
 
-EXPECTED_PRICES_BEFORE_JULY_2024 = {
-    "electrohold": {
-        "day": 0.257808,
-        "night": 0.151272
-    },
-    "evn": {
-        "day": 0.257508,
-        "night": 0.147876
-    },
-    "energo_pro": {
-        "day": 0.269796,
-        "night": 0.152232
-    },
-    "custom": {
-        "day": 0.25,
-        "night": 0.15
-    }
-}
-
-EXPECTED_PRICES_BEFORE_JANUARY_2025 = {
-    "electrohold": {
-        "day": 0.265656,
-        "night": 0.156384
-    },
-    "evn": {
-        "day": 0.261648,
-        "night": 0.152532
-    },
-    "energo_pro": {
-        "day": 0.268344,
-        "night": 0.151884
-    },
-    "custom": {
-        "day": 0.25,
-        "night": 0.15
-    }
-}
-
+# EUR
 EXPECTED_PRICES = {
     "electrohold": {
-        "day": 0.287856,
-        "night": 0.169464
+        "day": 0.149736,
+        "night": 0.088572
     },
     "evn": {
-        "day": 0.283596,
-        "night": 0.16536
+        "day": 0.149868,
+        "night": 0.088704
     },
     "energo_pro": {
-        "day": 0.291228,
-        "night": 0.16506
+        "day": 0.151392,
+        "night": 0.090228
     },
     "custom": {
         "day": 0.25,
@@ -68,123 +30,109 @@ EXPECTED_PRICES = {
     }
 }
 
-EXPECTED_PRICES_BY_DATE = [
-    {
-        "until": 1719777600,  # midnight 2024-07-01 UTC+2
-        "prices": EXPECTED_PRICES_BEFORE_JULY_2024
-    },
-    {
-        "until": 1735682400,  # midnight 2025-01-01 UTC+2
-        "prices": EXPECTED_PRICES_BEFORE_JANUARY_2025
-    },
-    {
-        "prices": EXPECTED_PRICES
-    }
-]
 
-
+@pytest.mark.parametrize("time, offset, tariff",
+                         (
+                                 ("2026-03-31 21:59 +03:00", 0, "day"),
+                                 ("2026-03-31 22:00 +03:00", 0, "night"),
+                                 ("2026-03-31 05:59 +03:00", 0, "night"),
+                                 ("2026-03-31 06:00 +03:00", 0, "day"),
+                                 ("2026-03-31 21:30 +03:00", 30, "night"),
+                                 ("2026-03-31 05:30 +03:00", 30, "day"),
+                                 ("2026-03-31 22:29 +03:00", -30, "day"),
+                                 ("2026-03-31 06:29 +03:00", -30, "night"),
+                                 ("2026-03-31 12:00 +03:00", 600, "night"),
+                                 ("2026-03-31 20:00 +03:00", 600, "day"),
+                                 ("2026-03-31 08:00 +03:00", -600, "night"),
+                                 ("2026-03-31 16:00 +03:00", -600, "day")
+                         ))
 @pytest.mark.parametrize("provider", ("electrohold", "evn", "energo_pro", "custom"))
-async def test_prices_before_july_2024(hass: HomeAssistant, provider: str) -> None:
-    """Test setting up and removing a config entry before July 2024."""
-    await do_setup_test_with_mock(hass, provider, mock_time_before_july_2024,
-                                  EXPECTED_PRICES_BEFORE_JULY_2024)
+async def test_prices_winter(hass: HomeAssistant, provider: str, time: str, offset: int, tariff: str) -> None:
+    """Test setting up and removing a config entry with current prices and default day/night algorithm in winter."""
+    with mock_clock(time):
+        await do_setup_test(hass, provider, "dual", tariff,
+                            EXPECTED_PRICES, offset, False)
+        await do_setup_test(hass, provider, "single", "day",
+                            EXPECTED_PRICES, offset, False)
 
 
+@pytest.mark.parametrize("time, offset, tariff",
+                         (
+                                 ("2026-04-01 22:59 +03:00", 0, "day"),
+                                 ("2026-04-01 23:00 +03:00", 0, "night"),
+                                 ("2026-04-01 06:59 +03:00", 0, "night"),
+                                 ("2026-04-01 07:00 +03:00", 0, "day"),
+                                 ("2026-04-01 22:30 +03:00", 30, "night"),
+                                 ("2026-04-01 06:30 +03:00", 30, "day"),
+                                 ("2026-04-01 23:29 +03:00", -30, "day"),
+                                 ("2026-04-01 07:29 +03:00", -30, "night"),
+                                 ("2026-04-01 13:00 +03:00", 600, "night"),
+                                 ("2026-04-01 21:00 +03:00", 600, "day"),
+                                 ("2026-04-01 09:00 +03:00", -600, "night"),
+                                 ("2026-04-01 17:00 +03:00", -600, "day")
+                         ))
 @pytest.mark.parametrize("provider", ("electrohold", "evn", "energo_pro", "custom"))
-async def test_prices_before_january_2025(hass: HomeAssistant, provider: str) -> None:
-    """Test setting up and removing a config entry before January 2025."""
-    await do_setup_test_with_mock(hass, provider, mock_time_before_january_2025,
-                                  EXPECTED_PRICES_BEFORE_JANUARY_2025)
+async def test_prices_summer(hass: HomeAssistant, provider: str, time: str, offset: int, tariff: str) -> None:
+    """Test setting up and removing a config entry with current prices and default day/night algorithm in summer."""
+    with mock_clock(time):
+        await do_setup_test(hass, provider, "dual", tariff,
+                            EXPECTED_PRICES, offset, False)
+        await do_setup_test(hass, provider, "single", "day",
+                            EXPECTED_PRICES, offset, False)
 
 
+@pytest.mark.parametrize("time, offset, tariff",
+                         (
+                                 ("2026-10-31 21:59 +02:00", 0, "day"),
+                                 ("2026-10-31 22:00 +02:00", 0, "night"),
+                                 ("2026-10-31 05:59 +02:00", 0, "night"),
+                                 ("2026-10-31 06:00 +02:00", 0, "day"),
+                                 ("2026-10-31 21:30 +02:00", 30, "night"),
+                                 ("2026-10-31 05:30 +02:00", 30, "day"),
+                                 ("2026-10-31 22:29 +02:00", -30, "day"),
+                                 ("2026-10-31 06:29 +02:00", -30, "night"),
+                                 ("2026-10-31 12:00 +02:00", 600, "night"),
+                                 ("2026-10-31 20:00 +02:00", 600, "day"),
+                                 ("2026-10-31 08:00 +02:00", -600, "night"),
+                                 ("2026-10-31 16:00 +02:00", -600, "day")
+                         ))
 @pytest.mark.parametrize("provider", ("electrohold", "evn", "energo_pro", "custom"))
-async def test_prices_current(hass: HomeAssistant, provider: str) -> None:
-    """Test setting up and removing a config entry with current prices."""
-    await do_setup_test_with_mock(hass, provider, mock_time,
-                                  EXPECTED_PRICES)
-
-
-async def do_setup_test_with_mock(hass: HomeAssistant,
-                                  provider: str, mock, expected_prices) -> None:
-    with mock(21, 59):
-        await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices)
+async def test_prices_winter_legacy(hass: HomeAssistant, provider: str, time: str, offset: int, tariff: str) -> None:
+    """Test setting up and removing a config entry with current prices and legacy day/night algorithm in winter."""
+    with mock_clock(time):
+        await do_setup_test(hass, provider, "dual", tariff,
+                            EXPECTED_PRICES, offset, True)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
+                            EXPECTED_PRICES, offset, True)
 
-    with mock(22, 0):
-        await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
 
-    with mock(5, 59):
-        await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices)
+@pytest.mark.parametrize("time, offset, tariff",
+                         (
+                                 ("2026-03-31 22:59 +03:00", 0, "day"),
+                                 ("2026-03-31 23:00 +03:00", 0, "night"),
+                                 ("2026-03-31 06:59 +03:00", 0, "night"),
+                                 ("2026-03-31 07:00 +03:00", 0, "day"),
+                                 ("2026-03-31 22:30 +03:00", 30, "night"),
+                                 ("2026-03-31 06:30 +03:00", 30, "day"),
+                                 ("2026-03-31 23:29 +03:00", -30, "day"),
+                                 ("2026-03-31 07:29 +03:00", -30, "night"),
+                                 ("2026-03-31 13:00 +03:00", 600, "night"),
+                                 ("2026-03-31 21:00 +03:00", 600, "day"),
+                                 ("2026-03-31 09:00 +03:00", -600, "night"),
+                                 ("2026-03-31 17:00 +03:00", -600, "day")
+                         ))
+@pytest.mark.parametrize("provider", ("electrohold", "evn", "energo_pro", "custom"))
+async def test_prices_summer_legacy(hass: HomeAssistant, provider: str, time: str, offset: int, tariff: str) -> None:
+    """Test setting up and removing a config entry with current prices and legacy day/night algorithm in summer."""
+    with mock_clock(time):
+        await do_setup_test(hass, provider, "dual", tariff,
+                            EXPECTED_PRICES, offset, True)
         await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
-
-    with mock(6, 0):
-        await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices)
-
-    # Meter clock is 30 minutes ahead
-    with mock(21, 30):
-        await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, 30)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 30)
-
-    with mock(5, 30):
-        await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, 30)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 30)
-
-    # Meter clock is 30 minutes behind
-    with mock(22, 29):
-        await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, -30)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -30)
-
-    with mock(6, 29):
-        await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, -30)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -30)
-
-    # Meter clock is 10 hours ahead
-    with mock(12, 0):
-        await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, 600)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 600)
-
-    with mock(20, 0):
-        await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, 600)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, 600)
-
-    # Meter clock is 10 hours behind
-    with mock(8, 0):
-        await do_setup_test(hass, provider, "dual", "night",
-                            expected_prices, -600)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -600)
-
-    with mock(16, 0):
-        await do_setup_test(hass, provider, "dual", "day",
-                            expected_prices, -600)
-        await do_setup_test(hass, provider, "single", "day",
-                            expected_prices, -600)
+                            EXPECTED_PRICES, offset, True)
 
 
 async def do_setup_test(hass: HomeAssistant, provider: str, tariff_type: str,
-                        expected_tariff: str, expected_prices, clock_offset=0):
+                        expected_tariff: str, expected_prices, clock_offset, use_legacy_day_night_algorithm):
     registry = er.async_get(hass)
     custom_day_price = 0.25
     custom_night_price = 0.15
@@ -199,7 +147,8 @@ async def do_setup_test(hass: HomeAssistant, provider: str, tariff_type: str,
             "tariff_type": tariff_type,
             "clock_offset": clock_offset,
             "custom_day_price": custom_day_price,
-            "custom_night_price": custom_night_price
+            "custom_night_price": custom_night_price,
+            "use_legacy_day_night_algorithm": use_legacy_day_night_algorithm
         },
         title="My Provider",
     )
@@ -220,7 +169,7 @@ async def do_setup_test(hass: HomeAssistant, provider: str, tariff_type: str,
         'friendly_name': 'My Provider Price',
         'icon': 'mdi:currency-eur',
         'state_class': SensorStateClass.MEASUREMENT,
-        'unit_of_measurement': 'BGN/kWh'
+        'unit_of_measurement': 'EUR/kWh'
     }
 
     # Check the price entity is registered in the entity registry
@@ -245,28 +194,7 @@ async def do_setup_test(hass: HomeAssistant, provider: str, tariff_type: str,
     assert registry.async_get(tariff_entity_id) is None
 
 
-def mock_time_before_july_2024(hour: int, minute: int):
-    hour -= 2
-    if hour < 0:
-        hour += 24
+def mock_clock(time_string: str):
     return mock.patch(
-        "custom_components.bg_electricity_regulated_pricing.sensor.now_utc",
-        return_value=datetime(2023, 12, 23, hour, minute, 0, 0, pytz.UTC))
-
-
-def mock_time_before_january_2025(hour: int, minute: int):
-    hour -= 2
-    if hour < 0:
-        hour += 24
-    return mock.patch(
-        "custom_components.bg_electricity_regulated_pricing.sensor.now_utc",
-        return_value=datetime(2024, 12, 30, hour, minute, 0, 0, pytz.UTC))
-
-
-def mock_time(hour: int, minute: int):
-    hour -= 2
-    if hour < 0:
-        hour += 24
-    return mock.patch(
-        "custom_components.bg_electricity_regulated_pricing.sensor.now_utc",
-        return_value=datetime(2025, 1, 1, hour, minute, 0, 0, pytz.UTC))
+        "custom_components.bg_electricity_regulated_pricing.sensor.now_bg",
+        return_value=datetime.strptime(time_string, "%Y-%m-%d %H:%M %z"))
