@@ -5,18 +5,16 @@
 
 # Bulgarian Electricity Regulated Pricing for Home Assistant
 
+> [!WARNING]
+> If you are upgrading from v0.0.x, see [Switchover to the euro](#switchover-to-the-euro) below.
+
 Custom integration for [Home Assistant](https://www.home-assistant.io) that provides the price of electricity on the regulated market for domestic customers, and the applicable tariff (day or night).
 
 All three major regional providers, Electrohold, EVN, and ENERGO-PRO are supported.
 
-The prices are defined statically as they change only about once a year. The official source for the current prices is section 6 from:
-
-- Since 1 July 2024: [Resolution C-17/30.06.2024 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2024/res-c-17-2024.pdf).
-- Since 1 July 2023: [Resolution C-14/30.06.2023 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2023/res_c_14_23.pdf).
+The prices are defined statically as they change only about once a year. The official source for the current prices is [Resolution C-25/01.07.2025 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2025/res-c-25-2025.pdf), where the price per MWh for each component was converted to euro and rounded according to the law for introducing the euro in Bulgaria. The converted prices were cross-checked with the websites of the three providers.
 
 All prices are the final amount that you'd pay, including VAT.
-
-The night tariff starts at 22:00 UTC+2 and ends at 06:00 UTC+2. Note that even though Bulgaria switches to UTC+3 in the summer, meter clocks are not adjusted. In other words, the night tariff starts at 22:00/ends at 06:00 in the winter and at 23:00/07:00 in the summer.
 
 > [!NOTE]
 > Summary in Bulgarian: Интеграция за Home Assistant, която предоставя сензори за текущата цена на електроенергията и текущата тарифа (дневна или нощна) според часа и конфигурирания доставчик на електронергия. Предоставените цени са определени от КЕВР за трите основни доставчика на регулирания пазар: Електрохолд, EVN и ЕНЕРГО-ПРО. 
@@ -25,17 +23,17 @@ The night tariff starts at 22:00 UTC+2 and ends at 06:00 UTC+2. Note that even t
 
 The integration provides two sensors that adjust according to the time of day and the configuration:
 
-### Current price in BGN per kWh
+### Current price in EUR per kWh
 
 This sensor provides the current price according to the configured provider and current tariff (day or night). It can be used to track expenses together with an energy meter in Home Assistant. The ID of the sensor will be `sensor.xxx_price` where `xxx` is derived from the name you give to the integration instance when configuring it. 
              
-<img src="https://github.com/avataar/bg_electricity_regulated_pricing/raw/main/images/price.png" width="50%" height="auto">
+<img src="images/price.png" width="50%" height="auto">
 
 ### Current tariff (day or night)
 
 This sensor provides the current tariff. It can be used to run power-hungry devices when the night tariff starts. The ID of the sensor will be `sensor.xxx_tariff` where `xxx` is derived from the name you give to the integration instance when configuring it.
 
-<img src="https://github.com/avataar/bg_electricity_regulated_pricing/raw/main/images/tariff.png" width="50%" height="auto">
+<img src="images/tariff.png" width="50%" height="auto">
 
 ## Install
 
@@ -50,8 +48,8 @@ In the future, the integration may be added to HACS's default repositories.
 From the sidebar in Home Assistant, select [Settings > Devices & Services](https://my.home-assistant.io/redirect/integrations). Search for the integration by name (Bulgarian Electricity Regulated Pricing / Цени на електроенергията на регулирания пазар в България). To configure it for most users, it will suffice to enter a name, choose the provider, and leave the rest of the options with their default values. The name will be used to derive the sensor IDs.
 
 <p>
-  <img src="https://github.com/avataar/bg_electricity_regulated_pricing/raw/main/images/configure-bg.png" width="45%" height="auto">
-  <img src="https://github.com/avataar/bg_electricity_regulated_pricing/raw/main/images/configure-en.png" width="45%" height="auto">
+  <img src="images/configure-bg.png" width="45%" height="auto">
+  <img src="images/configure-en.png" width="35%" height="auto">
 </p>
 
 If you have multiple meters to track, you can configure as many instances of the integration as needed.
@@ -69,3 +67,21 @@ Meter clocks are notoriously never correct. You can adjust the time used for swi
 #### Dual vs single tariff billing
 
 Most users get billed at the dual tariff that switches between day and night prices. If for some reason you have a single tariff you can choose that in the `Tariff Type` / `Тарифност` option. When a single tariff is configured, the day price will be used at all times and the tariff sensor will always report the tariff as `day`.
+
+#### Night tariff start/end time
+
+The night tariff starts at 23:00 local time and ends at 07:00 local time in the months April to October inclusive. In the other months, it starts at 22:00 local time and ends at 06:00 local time. At least according to the official rules.
+
+Historically, providers used clocks that weren't adjusted for summer time, so the night tariff started at 22:00 UTC+2 and ended at 06:00 UTC+2. Effectively, the night tariff started at 22:00/ended at 06:00 local time when winter time was in use, and at 23:00/07:00 local time when clocks were shifted an hour ahead in the summer.
+
+If you know your clock follows the historical rules, you can enable the `Use Legacy Night Tariff Algorithm` / `Използване на стария алгоритъм за нощна тарифа` option. If the option isn't enabled, it will use the official rules.
+
+## Switchover to the euro
+
+As of version 1.0.0, the integration uses the euro as the currency for all prices. As such, any historic statistics values will be incompatible because of the unit change from BGN/kWh to EUR/kWh. Home Assistant will show a warning about this when you upgrade to the new version.
+
+<p>
+  <img src="images/unit-change-bg.png" width="45%" height="auto">
+  <img src="images/unit-change-en.png" width="45%" height="auto">
+</p>
+
