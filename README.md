@@ -12,7 +12,7 @@ Custom integration for [Home Assistant](https://www.home-assistant.io) that prov
 
 All three major regional providers, Electrohold, EVN, and ENERGO-PRO are supported.
 
-The prices are defined statically as they change only about once a year. The official source for the current prices is [Resolution C-25/01.07.2025 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2025/res-c-25-2025.pdf), where the price per MWh for each component was converted to euro and rounded according to the law for introducing the euro in Bulgaria. The converted prices were cross-checked with the websites of the three providers.
+The prices are defined statically as they change only about once a year. The official source for the current prices is [Resolution C-13/01.07.2026 of the Bulgarian Energy and Water Regulatory Commission](https://www.dker.bg/uploads/reshenia/2026/res-c-13-2026.pdf).
 
 All prices are the final amount that you'd pay, including VAT.
 

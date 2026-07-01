@@ -20,28 +20,26 @@ CONF_CLASSIC_DAY_NIGHT = "use_legacy_day_night_algorithm"
 
 VAT_RATE = 0.2
 
-# Prices converted from BGN, where the price per MWh was converted to EUR and rounded
-# according to the law for introducing the EUR.
 PROVIDER_PRICES = {
-    # Section II.1, II.2, III.1, https://www.dker.bg/uploads/reshenia/2025/res-c-25-2025.pdf
+    # Section III.1, III.2.1, https://www.dker.bg/uploads/reshenia/2026/res-c-13-2026.pdf
     # https://electrohold.bg/bg/sales/domakinstva/snabdyavane-po-regulirani-ceni/
     "electrohold": {
-        "day": .08955,
-        "night": .03858,
-        "fees": .00018 + .0076 + .00371 + .02374
+        "day": .09297,
+        "night": .04103,
+        "fees": .00018 + .00801 + .00347 + .02391
     },
-    # Section II.1, II.3, III.1, https://www.dker.bg/uploads/reshenia/2025/res-c-25-2025.pdf
+    # Section III.1, III.2.2, https://www.dker.bg/uploads/reshenia/2026/res-c-13-2026.pdf
     # https://evn.bg/Home/Electricity.aspx
     "evn": {
-        "day": .08955,
-        "night": .03858,
-        "fees": .00018 + .0076 + .00419 + .02337
+        "day": .09297,
+        "night": .04103,
+        "fees": .00018 + .00801 + .00419 + .02347
     },
-    # Section II.1, II.4, III.1, https://www.dker.bg/uploads/reshenia/2025/res-c-25-2025.pdf
+    # Section III.1, III.2.3, https://www.dker.bg/uploads/reshenia/2026/res-c-13-2026.pdf
     # https://www.energo-pro.bg/bitovi-klienti/ceni-tarifi
     "energo_pro": {
-        "day": .08955,
-        "night": .03858,
-        "fees": .00018 + .0076 + .005 + .02383
+        "day": .09297,
+        "night": .04103,
+        "fees": .00018 + .00801 + .00499 + .02312
     }
 }
