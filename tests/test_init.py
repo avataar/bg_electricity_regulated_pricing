@@ -13,16 +13,16 @@ from custom_components.bg_electricity_regulated_pricing.const import DOMAIN
 # EUR
 EXPECTED_PRICES = {
     "electrohold": {
-        "day": 0.149736,
-        "night": 0.088572
+        "day": 0.154248,
+        "night": 0.09192
     },
     "evn": {
-        "day": 0.149868,
-        "night": 0.088704
+        "day": 0.154584,
+        "night": 0.092256
     },
     "energo_pro": {
-        "day": 0.151392,
-        "night": 0.090228
+        "day": 0.155124,
+        "night": 0.092796
     },
     "custom": {
         "day": 0.25,
